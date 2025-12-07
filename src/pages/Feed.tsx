@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { PostCard } from '@/components/post/PostCard';
 import { CommentSection } from '@/components/post/CommentSection';
+import { StoriesCarousel } from '@/components/stories/StoriesCarousel';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
@@ -165,6 +166,9 @@ export default function Feed() {
             Pixela
           </h1>
         </div>
+
+        {/* Stories Carousel */}
+        <StoriesCarousel />
 
         {posts.length === 0 ? (
           <div className="text-center py-12 animate-fade-in">
