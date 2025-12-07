@@ -39,9 +39,9 @@ export function StoryCreator({ onClose, onStoryCreated }: StoryCreatorProps) {
     setIsUploading(true);
 
     try {
-      // Upload image to storage
+      // Upload image to storage - path must start with user.id for RLS policy
       const fileExt = selectedFile.name.split('.').pop();
-      const fileName = `stories/${user.id}/${Date.now()}.${fileExt}`;
+      const fileName = `${user.id}/stories/${Date.now()}.${fileExt}`;
 
       const { error: uploadError } = await supabase.storage
         .from('posts')
