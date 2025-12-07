@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ImagePlus, X } from 'lucide-react';
+import { ImagePlus, X, Film } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
+import { validateMediaFile, isVideoFile, getAcceptedMediaTypes } from '@/lib/mediaUtils';
 
 export default function Create() {
   const { user, loading: authLoading } = useAuth();
@@ -13,6 +14,7 @@ export default function Create() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
+  const [isVideo, setIsVideo] = useState(false);
   const [caption, setCaption] = useState('');
   const [isUploading, setIsUploading] = useState(false);
 
@@ -25,22 +27,21 @@ export default function Create() {
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      if (!file.type.startsWith('image/')) {
-        toast.error('Please select an image file');
-        return;
-      }
-      if (file.size > 10 * 1024 * 1024) {
-        toast.error('Image must be less than 10MB');
+      const validation = validateMediaFile(file);
+      if (!validation.valid) {
+        toast.error(validation.error);
         return;
       }
       setSelectedFile(file);
       setPreview(URL.createObjectURL(file));
+      setIsVideo(isVideoFile(file));
     }
   };
 
-  const handleRemoveImage = () => {
+  const handleRemoveMedia = () => {
     setSelectedFile(null);
     setPreview(null);
+    setIsVideo(false);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -52,7 +53,7 @@ export default function Create() {
     setIsUploading(true);
 
     try {
-      // Upload image to storage
+      // Upload media to storage
       const fileExt = selectedFile.name.split('.').pop();
       const fileName = `${user.id}/${Date.now()}.${fileExt}`;
 
@@ -99,7 +100,7 @@ export default function Create() {
         </h1>
 
         <div className="space-y-6 animate-fade-in">
-          {/* Image Upload */}
+          {/* Media Upload */}
           <div 
             className={`relative aspect-square rounded-xl border-2 border-dashed transition-colors overflow-hidden ${
               preview 
@@ -110,15 +111,24 @@ export default function Create() {
           >
             {preview ? (
               <>
-                <img
-                  src={preview}
-                  alt="Preview"
-                  className="w-full h-full object-cover"
-                />
+                {isVideo ? (
+                  <video
+                    src={preview}
+                    className="w-full h-full object-cover"
+                    controls
+                    playsInline
+                  />
+                ) : (
+                  <img
+                    src={preview}
+                    alt="Preview"
+                    className="w-full h-full object-cover"
+                  />
+                )}
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    handleRemoveImage();
+                    handleRemoveMedia();
                   }}
                   className="absolute top-3 right-3 p-2 rounded-full bg-foreground/80 text-background hover:bg-foreground transition-colors"
                 >
@@ -127,15 +137,18 @@ export default function Create() {
               </>
             ) : (
               <div className="absolute inset-0 flex flex-col items-center justify-center text-muted-foreground">
-                <ImagePlus className="h-12 w-12 mb-3" />
-                <p className="font-medium">Click to upload an image</p>
-                <p className="text-sm mt-1">PNG, JPG up to 10MB</p>
+                <div className="flex items-center gap-3 mb-3">
+                  <ImagePlus className="h-10 w-10" />
+                  <Film className="h-10 w-10" />
+                </div>
+                <p className="font-medium">Click to upload an image or video</p>
+                <p className="text-sm mt-1">Images up to 10MB, videos up to 50MB</p>
               </div>
             )}
             <input
               ref={fileInputRef}
               type="file"
-              accept="image/*"
+              accept={getAcceptedMediaTypes()}
               onChange={handleFileSelect}
               className="hidden"
             />

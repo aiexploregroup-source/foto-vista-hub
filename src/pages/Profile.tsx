@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Settings, Camera } from 'lucide-react';
+import { Settings, Camera, Film } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -13,6 +13,7 @@ import { Label } from '@/components/ui/label';
 import { FollowButton } from '@/components/profile/FollowButton';
 import { CommentSection } from '@/components/post/CommentSection';
 import { toast } from 'sonner';
+import { isVideoUrl } from '@/lib/mediaUtils';
 
 interface Profile {
   id: string;
@@ -372,31 +373,48 @@ export default function Profile() {
             </div>
           ) : (
             <div className="grid grid-cols-3 gap-1 md:gap-4">
-              {posts.map((post, index) => (
-                <button
-                  key={post.id}
-                  onClick={() => handlePostClick(post)}
-                  className="aspect-square relative group overflow-hidden rounded-md md:rounded-lg animate-fade-in"
-                  style={{ animationDelay: `${index * 50}ms` }}
-                >
-                  <img
-                    src={post.image_url}
-                    alt={post.caption || 'Post'}
-                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                    loading="lazy"
-                  />
-                  <div className="absolute inset-0 bg-foreground/0 group-hover:bg-foreground/30 transition-colors flex items-center justify-center">
-                    <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-4 text-primary-foreground">
-                      <span className="flex items-center gap-1 font-medium">
-                        ♥ {post.likes.length}
-                      </span>
-                      <span className="flex items-center gap-1 font-medium">
-                        💬 {post.comments.length}
-                      </span>
+              {posts.map((post, index) => {
+                const isVideo = isVideoUrl(post.image_url);
+                return (
+                  <button
+                    key={post.id}
+                    onClick={() => handlePostClick(post)}
+                    className="aspect-square relative group overflow-hidden rounded-md md:rounded-lg animate-fade-in"
+                    style={{ animationDelay: `${index * 50}ms` }}
+                  >
+                    {isVideo ? (
+                      <>
+                        <video
+                          src={post.image_url}
+                          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                          muted
+                          playsInline
+                        />
+                        <div className="absolute top-2 right-2 p-1 bg-foreground/50 rounded">
+                          <Film className="h-4 w-4 text-background" />
+                        </div>
+                      </>
+                    ) : (
+                      <img
+                        src={post.image_url}
+                        alt={post.caption || 'Post'}
+                        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                        loading="lazy"
+                      />
+                    )}
+                    <div className="absolute inset-0 bg-foreground/0 group-hover:bg-foreground/30 transition-colors flex items-center justify-center">
+                      <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-4 text-primary-foreground">
+                        <span className="flex items-center gap-1 font-medium">
+                          ♥ {post.likes.length}
+                        </span>
+                        <span className="flex items-center gap-1 font-medium">
+                          💬 {post.comments.length}
+                        </span>
+                      </div>
                     </div>
-                  </div>
-                </button>
-              ))}
+                  </button>
+                );
+              })}
             </div>
           )}
         </div>
@@ -458,11 +476,20 @@ export default function Profile() {
           {selectedPost && (
             <div className="grid md:grid-cols-2">
               <div className="aspect-square bg-muted">
-                <img
-                  src={selectedPost.image_url}
-                  alt={selectedPost.caption || 'Post'}
-                  className="w-full h-full object-cover"
-                />
+                {isVideoUrl(selectedPost.image_url) ? (
+                  <video
+                    src={selectedPost.image_url}
+                    className="w-full h-full object-cover"
+                    controls
+                    playsInline
+                  />
+                ) : (
+                  <img
+                    src={selectedPost.image_url}
+                    alt={selectedPost.caption || 'Post'}
+                    className="w-full h-full object-cover"
+                  />
+                )}
               </div>
               <div className="p-4 flex flex-col">
                 <DialogHeader className="pb-4 border-b border-border">
