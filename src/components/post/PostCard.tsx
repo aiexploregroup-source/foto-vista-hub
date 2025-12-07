@@ -1,13 +1,21 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Heart, MessageCircle, MoreHorizontal } from 'lucide-react';
+import { Heart, MessageCircle, MoreHorizontal, PlusCircle } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { isVideoUrl } from '@/lib/mediaUtils';
+import { StoryCreator } from '@/components/stories/StoryCreator';
 
 interface PostCardProps {
   post: {
@@ -35,6 +43,9 @@ export function PostCard({ post, onLikeUpdate, onCommentClick }: PostCardProps) 
   );
   const [likesCount, setLikesCount] = useState(post.likes.length);
   const [isAnimating, setIsAnimating] = useState(false);
+  const [showStoryCreator, setShowStoryCreator] = useState(false);
+  
+  const isVideo = isVideoUrl(post.image_url);
 
   const handleLike = async () => {
     if (!user) {
@@ -84,89 +95,138 @@ export function PostCard({ post, onLikeUpdate, onCommentClick }: PostCardProps) 
     }
   };
 
+  const handleAddToStory = () => {
+    if (!user) {
+      toast.error('Please sign in to add to story');
+      return;
+    }
+    setShowStoryCreator(true);
+  };
+
   return (
-    <article className="bg-card rounded-xl shadow-card overflow-hidden animate-slide-up">
-      {/* Header */}
-      <div className="flex items-center justify-between p-4">
-        <Link 
-          to={`/profile/${post.user_id}`}
-          className="flex items-center gap-3 hover:opacity-80 transition-opacity"
-        >
-          <Avatar className="h-10 w-10 ring-2 ring-primary/20">
-            <AvatarImage src={post.profiles.avatar_url || undefined} />
-            <AvatarFallback className="bg-primary/10 text-primary font-medium">
-              {post.profiles.username.charAt(0).toUpperCase()}
-            </AvatarFallback>
-          </Avatar>
-          <div>
-            <p className="font-semibold text-foreground">{post.profiles.username}</p>
-          </div>
-        </Link>
-        <Button variant="ghost" size="icon" className="text-muted-foreground">
-          <MoreHorizontal className="h-5 w-5" />
-        </Button>
-      </div>
-
-      {/* Image */}
-      <div 
-        className="relative aspect-square bg-muted cursor-pointer"
-        onDoubleClick={handleDoubleClick}
-      >
-        <img
-          src={post.image_url}
-          alt={post.caption || 'Post image'}
-          className="w-full h-full object-cover"
-          loading="lazy"
-        />
-      </div>
-
-      {/* Actions */}
-      <div className="p-4 space-y-3">
-        <div className="flex items-center gap-4">
-          <button
-            onClick={handleLike}
-            className={cn(
-              "flex items-center gap-1.5 transition-all duration-200",
-              isLiked ? "text-coral" : "text-foreground hover:text-coral"
-            )}
+    <>
+      <article className="bg-card rounded-xl shadow-card overflow-hidden animate-slide-up">
+        {/* Header */}
+        <div className="flex items-center justify-between p-4">
+          <Link 
+            to={`/profile/${post.user_id}`}
+            className="flex items-center gap-3 hover:opacity-80 transition-opacity"
           >
-            <Heart 
-              className={cn(
-                "h-6 w-6 transition-all",
-                isLiked && "fill-coral",
-                isAnimating && "animate-heart"
-              )} 
-            />
-            <span className="font-medium">{likesCount}</span>
-          </button>
-          
-          <button
-            onClick={onCommentClick}
-            className="flex items-center gap-1.5 text-foreground hover:text-primary transition-colors"
-          >
-            <MessageCircle className="h-6 w-6" />
-            <span className="font-medium">{post.comments.length}</span>
-          </button>
+            <Avatar className="h-10 w-10 ring-2 ring-primary/20">
+              <AvatarImage src={post.profiles.avatar_url || undefined} />
+              <AvatarFallback className="bg-primary/10 text-primary font-medium">
+                {post.profiles.username.charAt(0).toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+            <div>
+              <p className="font-semibold text-foreground">{post.profiles.username}</p>
+            </div>
+          </Link>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="text-muted-foreground">
+                <MoreHorizontal className="h-5 w-5" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={handleAddToStory}>
+                <PlusCircle className="h-4 w-4 mr-2" />
+                Add to Story
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
 
-        {/* Caption */}
-        {post.caption && (
-          <p className="text-foreground">
-            <Link 
-              to={`/profile/${post.user_id}`}
-              className="font-semibold hover:underline mr-2"
-            >
-              {post.profiles.username}
-            </Link>
-            {post.caption}
-          </p>
-        )}
+        {/* Media */}
+        <div 
+          className="relative aspect-square bg-muted cursor-pointer"
+          onDoubleClick={handleDoubleClick}
+        >
+          {isVideo ? (
+            <video
+              src={post.image_url}
+              className="w-full h-full object-cover"
+              controls
+              playsInline
+              muted
+            />
+          ) : (
+            <img
+              src={post.image_url}
+              alt={post.caption || 'Post image'}
+              className="w-full h-full object-cover"
+              loading="lazy"
+            />
+          )}
+        </div>
 
-        {/* Timestamp */}
-        <p className="text-xs text-muted-foreground">
-          {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}
-        </p>
-      </div>
-    </article>
+        {/* Actions */}
+        <div className="p-4 space-y-3">
+          <div className="flex items-center gap-4">
+            <button
+              onClick={handleLike}
+              className={cn(
+                "flex items-center gap-1.5 transition-all duration-200",
+                isLiked ? "text-coral" : "text-foreground hover:text-coral"
+              )}
+            >
+              <Heart 
+                className={cn(
+                  "h-6 w-6 transition-all",
+                  isLiked && "fill-coral",
+                  isAnimating && "animate-heart"
+                )} 
+              />
+              <span className="font-medium">{likesCount}</span>
+            </button>
+            
+            <button
+              onClick={onCommentClick}
+              className="flex items-center gap-1.5 text-foreground hover:text-primary transition-colors"
+            >
+              <MessageCircle className="h-6 w-6" />
+              <span className="font-medium">{post.comments.length}</span>
+            </button>
+
+            <button
+              onClick={handleAddToStory}
+              className="flex items-center gap-1.5 text-foreground hover:text-primary transition-colors ml-auto"
+            >
+              <PlusCircle className="h-6 w-6" />
+            </button>
+          </div>
+
+          {/* Caption */}
+          {post.caption && (
+            <p className="text-foreground">
+              <Link 
+                to={`/profile/${post.user_id}`}
+                className="font-semibold hover:underline mr-2"
+              >
+                {post.profiles.username}
+              </Link>
+              {post.caption}
+            </p>
+          )}
+
+          {/* Timestamp */}
+          <p className="text-xs text-muted-foreground">
+            {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}
+          </p>
+        </div>
+      </article>
+
+      {/* Story Creator Modal */}
+      {showStoryCreator && (
+        <StoryCreator
+          onClose={() => setShowStoryCreator(false)}
+          onStoryCreated={() => {
+            setShowStoryCreator(false);
+            toast.success('Added to your story!');
+          }}
+          initialMediaUrl={post.image_url}
+        />
+      )}
+    </>
   );
 }
