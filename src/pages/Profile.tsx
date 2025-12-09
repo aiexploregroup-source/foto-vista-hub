@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { FollowButton } from '@/components/profile/FollowButton';
+import { StartChat } from '@/components/chat/StartChat';
 import { CommentSection } from '@/components/post/CommentSection';
 import { toast } from 'sonner';
 import { isVideoUrl } from '@/lib/mediaUtils';
@@ -323,10 +324,13 @@ export default function Profile() {
                   Edit Profile
                 </Button>
               ) : (
-                <FollowButton
-                  targetUserId={userId!}
-                  onFollowChange={fetchFollowCounts}
-                />
+                <div className="flex gap-2">
+                  <FollowButton
+                    targetUserId={userId!}
+                    onFollowChange={fetchFollowCounts}
+                  />
+                  <StartChat targetUserId={userId!} />
+                </div>
               )}
             </div>
 
