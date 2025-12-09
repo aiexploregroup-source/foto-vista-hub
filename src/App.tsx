@@ -10,6 +10,7 @@ import Auth from "./pages/Auth";
 import Explore from "./pages/Explore";
 import Create from "./pages/Create";
 import Profile from "./pages/Profile";
+import Messages from "./pages/Messages";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -34,6 +35,7 @@ function AppRoutes() {
         <Route path="/explore" element={<Explore />} />
         <Route path="/create" element={<Create />} />
         <Route path="/profile/:userId" element={<Profile />} />
+        <Route path="/messages" element={<Messages />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AppLayout>

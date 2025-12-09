@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Search, PlusSquare, User, LogOut, X } from 'lucide-react';
+import { Home, Search, PlusSquare, User, LogOut, X, MessageCircle } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { UserSearch } from '@/components/search/UserSearch';
@@ -14,6 +14,7 @@ export function Navbar() {
   const navItems = [
     { icon: Home, label: 'Feed', path: '/' },
     { icon: Search, label: 'Search', path: null, action: () => setMobileSearchOpen(true) },
+    { icon: MessageCircle, label: 'Messages', path: '/messages' },
     { icon: PlusSquare, label: 'Create', path: '/create' },
     { icon: User, label: 'Profile', path: user ? `/profile/${user.id}` : '/auth' },
   ];
