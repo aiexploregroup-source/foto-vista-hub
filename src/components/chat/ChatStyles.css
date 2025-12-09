@@ -1,0 +1,102 @@
+/* Container for the entire chat application */
+.chat-container {
+    display: flex;
+    flex-direction: column;
+    height: 80vh; /* Adjust as needed */
+    max-width: 600px;
+    margin: 20px auto;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+/* Area where all messages are displayed */
+.messages-area {
+    flex-grow: 1;
+    overflow-y: auto; /* Enable scrolling for messages */
+    padding: 10px;
+    background-color: #f7f7f7;
+}
+
+/* Wrapper for positioning the bubble (left or right) */
+.message-bubble-wrapper {
+    display: flex;
+    margin-bottom: 10px;
+}
+
+/* Position bubble to the right for the current user */
+.message-right {
+    justify-content: flex-end;
+}
+
+/* Position bubble to the left for others */
+.message-left {
+    justify-content: flex-start;
+}
+
+/* The actual message bubble style */
+.message-bubble {
+    max-width: 70%;
+    padding: 8px 12px;
+    border-radius: 15px;
+    line-height: 1.4;
+    position: relative;
+    /* Basic shadow for depth */
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
+}
+
+/* Styling for the current user's messages */
+.my-message {
+    background-color: #007bff; /* Blue */
+    color: white;
+    /* Rounded corner style adjustment */
+    border-bottom-right-radius: 0;
+}
+
+/* Styling for other users' messages */
+.other-message {
+    background-color: #ffffff; /* White */
+    color: #333;
+    /* Rounded corner style adjustment */
+    border-bottom-left-radius: 0;
+}
+
+.message-time {
+    display: block;
+    margin-top: 5px;
+    font-size: 0.7em;
+    text-align: right;
+    opacity: 0.7;
+}
+
+/* Input Form Styling */
+.message-input-form {
+    display: flex;
+    padding: 10px;
+    border-top: 1px solid #ccc;
+    background-color: #fff;
+}
+
+.message-input-form textarea {
+    flex-grow: 1;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    resize: none; /* Disable manual resizing */
+    font-family: inherit;
+    margin-right: 10px;
+}
+
+.message-input-form button {
+    padding: 10px 15px;
+    background-color: #28a745;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.message-input-form button:disabled {
+    background-color: #90ee90;
+    cursor: not-allowed;
+}
